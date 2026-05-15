@@ -1,0 +1,81 @@
+// ============================================================
+// PATTERN 2: Navigation page — role-based button visibility
+// ============================================================
+// All measures flow from CurrentUserEmail as the single source
+// of truth for the logged-in user's identity.
+//
+// Apply to buttons via conditional formatting:
+//   Fill color   → ButtonColor.faculty / ButtonColor.counselor
+//   Text color   → ButtonTextColor
+//   Action       → ButtonAction.faculty / ButtonAction.counselor
+// ============================================================
+
+
+// ------------------------------------------------------------
+// FOUNDATION
+// Defined once per report — shared with faculty filter pattern.
+// ------------------------------------------------------------
+
+CurrentUserEmail = 
+VAR user = USERPRINCIPALNAME()
+RETURN
+IF(ISBLANK(user), "Unknown", user)
+
+
+// ------------------------------------------------------------
+// FACULTY BUTTON
+// ------------------------------------------------------------
+
+UserHasAccess.faculty = 
+IF(
+    NOT(ISBLANK(
+        LOOKUPVALUE(
+            '1 Faculty Permission List'[Email],
+            '1 Faculty Permission List'[Email],
+            [CurrentUserEmail]
+        )
+    )),
+    1, 0
+)
+
+ButtonColor.faculty = 
+IF([UserHasAccess.faculty] = 1, "#B20838", "#FFFFFF00")
+
+ButtonAction.faculty = 
+IF([UserHasAccess.faculty] = 1, "Instructor Welcome Page", BLANK())
+
+
+// ------------------------------------------------------------
+// COUNSELOR BUTTON
+// ------------------------------------------------------------
+
+UserHasAccess.counselor = 
+IF(
+    NOT(ISBLANK(
+        LOOKUPVALUE(
+            '1 Counselor Permission List'[Email],
+            '1 Counselor Permission List'[Email],
+            [CurrentUserEmail]
+        )
+    )),
+    1, 0
+)
+
+ButtonColor.counselor = 
+IF([UserHasAccess.counselor] = 1, "#B20838", "#FFFFFF00")
+
+ButtonAction.counselor = 
+IF([UserHasAccess.counselor] = 1, "Counselor Welcome Page", BLANK())
+
+
+// ------------------------------------------------------------
+// SHARED TEXT COLOR
+// One measure works for both button types.
+// ------------------------------------------------------------
+
+ButtonTextColor = 
+IF(
+    [UserHasAccess.faculty] = 1 || [UserHasAccess.counselor] = 1,
+    "#FFFFFF",
+    "#FFFFFF00"
+)
